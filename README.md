@@ -1,73 +1,80 @@
-# Welcome to your Lovable project
+# 🩺 Doc-In-A-Box: AI Doctor Assistant via WhatsApp
 
-## Project info
+A full-stack AI-powered medical assistant that helps users receive health advice, medicine reminders, and symptom assessments directly via WhatsApp.
 
-**URL**: https://lovable.dev/projects/699865da-4c3a-4cdb-8aa7-62a876fbdaac
+> 💡 Built to support accessible telemedicine in low-resource areas using WhatsApp and OpenAI.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🔍 Features
 
-**Use Lovable**
+- 🤖 AI symptom checker powered by OpenAI + LangChain  
+- 💬 WhatsApp bot integration (via Twilio API)  
+- 📚 Medical knowledge base with vector search  
+- ⏰ Medicine schedule tracking & reminders  
+- 📊 Admin dashboard for monitoring patients and analytics  
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/699865da-4c3a-4cdb-8aa7-62a876fbdaac) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🧱 Tech Stack
 
-**Use your preferred IDE**
+| Frontend                               | Backend             | AI                    | Infra                       |
+|----------------------------------------|---------------------|------------------------|-----------------------------|
+| React (Vite + Tailwind + ShadCN UI)    | FastAPI (Python 3.10) | OpenAI GPT-4, LangChain | Twilio API, SQLite, GitHub |
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🗂️ Project Structure
+/frontend
+│
+├── /src
+│ ├── /pages # Dashboard, Conversations, Knowledge Base
+│ ├── /components # UI components (cards, buttons, inputs)
+│ └── ...
+│
+/backend
+│
+├── main.py # FastAPI app entry
+├── whatsapp.py # Twilio webhook endpoint
+├── ai_agent.py # LLM-based diagnosis handler
+└── db.py # SQLite-based patient + medicine tracker
 
-Follow these steps:
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## 🛠️ How to Run This Locally
+### 🖼 Frontend (React + Vite)
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+git clone https://github.com/divyateja2219/doc-in-a-box-ai.git
+cd doc-in-a-box-ai
+npm install
 npm run dev
-```
 
-**Edit a file directly in GitHub**
+⚙️ Backend (FastAPI)
+bash
+Copy code
+cd backend
+python -m venv venv
+source venv/bin/activate  # or `venv\Scripts\activate` on Windows
+pip install -r requirements.txt
+uvicorn main:app --reload
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+🌐 Deployment
+Frontend can be deployed to Vercel, Netlify, or GitHub Pages
+Backend can run on Render, Railway, or Replit
+Database: Use SQLite for local development, or PostgreSQL for production
+Domain: Connect a custom domain with HTTPS using Render/Vercel or Cloudflare
 
-**Use GitHub Codespaces**
+📸 Screenshots
+✅ Dashboard
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-## What technologies are used for this project?
+💊 Knowledge Base
 
-This project is built with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+💬 WhatsApp Conversation Monitor
 
-## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/699865da-4c3a-4cdb-8aa7-62a876fbdaac) and click on Share -> Publish.
+✨ Credits
+Built with 💙 by Erugadinlla Divya Teja
 
-## Can I connect a custom domain to my Lovable project?
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
