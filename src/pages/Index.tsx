@@ -24,19 +24,19 @@ const Index = () => {
               Knowledge Base
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="dashboard">
             <Dashboard />
           </TabsContent>
-          
+
           <TabsContent value="conversations">
             <ConversationMonitor />
           </TabsContent>
-          
+
           <TabsContent value="medicine">
             <MedicineTracker />
           </TabsContent>
-          
+
           <TabsContent value="knowledge">
             <KnowledgeBase />
           </TabsContent>
