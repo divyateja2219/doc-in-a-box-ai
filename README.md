@@ -76,6 +76,5 @@ Domain: Connect a custom domain with HTTPS using Render/Vercel or Cloudflare
 💬 WhatsApp Conversation Monitor
 <img width="1096" height="841" alt="WhatsApp Monitor" src="https://github.com/user-attachments/assets/4d4e7b7a-109f-4054-8239-64fc080830e6" />
 
-## Credits
-✨ Credits
+## ✨ Credits
 Built with 💙 by Erugadinlla Divya Teja
