@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Dashboard from "@/components/Dashboard";
-import ConversationMonitor from "@/components/ConversationMonitor";
-import MedicineTracker from "@/pages/MedicineTracker"; 
+import ConversationMonitor from "@/components/ConversationMonitor"; 
 import KnowledgeBase from "@/components/KnowledgeBase";
 
 const Index = () => {
@@ -17,9 +16,6 @@ const Index = () => {
             <TabsTrigger value="conversations" className="data-[state=active]:bg-gradient-medical data-[state=active]:text-white">
               Conversations
             </TabsTrigger>
-            <TabsTrigger value="medicine" className="data-[state=active]:bg-gradient-medical data-[state=active]:text-white">
-              Medicine Tracker
-            </TabsTrigger>
             <TabsTrigger value="knowledge" className="data-[state=active]:bg-gradient-medical data-[state=active]:text-white">
               Knowledge Base
             </TabsTrigger>
@@ -31,10 +27,6 @@ const Index = () => {
 
           <TabsContent value="conversations">
             <ConversationMonitor />
-          </TabsContent>
-
-          <TabsContent value="medicine">
-            <MedicineTracker />
           </TabsContent>
 
           <TabsContent value="knowledge">
