@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Dashboard from "@/components/Dashboard";
 import ConversationMonitor from "@/components/ConversationMonitor";
-import MedicineTracker from "@/components/MedicineTracker"; 
+import MedicineTracker from "@/pages/MedicineTracker"; 
 import KnowledgeBase from "@/components/KnowledgeBase";
 
 const Index = () => {
