@@ -76,5 +76,20 @@ Domain: Connect a custom domain with HTTPS using Render/Vercel or Cloudflare
 💬 WhatsApp Conversation Monitor
 <img width="1096" height="841" alt="WhatsApp Monitor" src="https://github.com/user-attachments/assets/4d4e7b7a-109f-4054-8239-64fc080830e6" />
 
+## ✅ Tested Example
+
+### 🔍 Symptoms:
+- Headache
+- Sore Throat
+- Fever
+
+### 💬 AI Doctor Response:
+- Possible Diagnosis: Viral infection or upper respiratory tract infection
+- Advice: Stay hydrated, rest, and monitor symptoms. Seek medical attention if it worsens.
+
+### 📱 Test Platform:
+- WhatsApp Interface connected to AI backend
+- Deployed on Vercel: [Visit Site](https://doc-in-a-box-4w01rnspp-divyas-projects-c838244f.vercel.app/)
+
 ## ✨ Credits
 Built with 💙 by Erugadinlla Divya Teja
