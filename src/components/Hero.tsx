@@ -2,9 +2,9 @@ import React from "react";
 
 export default function Hero() {
   return (
-    <section className="flex flex-col items-center justify-center text-center py-20 px-4 bg-gradient-to-b from-blue-50 to-white">
-      {/* ✅ This is the new line to test */}
-      <h1 className="text-4xl font-bold text-red-500 mb-4">I AM UPDATED!</h1>
+    <section className="flex flex-col items-center justify-center text-center py-20 px-4 bg-red-100">
+      {/* ✅ Test heading */}
+      <h1 className="text-4xl font-bold text-red-500 mb-4">🔥 I AM UPDATED!</h1>
 
       <h1 className="text-4xl md:text-5xl font-bold mb-6 text-blue-800">
         Your AI Doctor on WhatsApp
