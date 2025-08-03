@@ -1,6 +1,5 @@
 // src/components/Hero.tsx
 import React from "react";
-
 export default function Hero() {
   return (
     <section className="flex flex-col items-center justify-center text-center py-20 px-4 bg-gradient-to-b from-blue-50 to-white">
