@@ -32,6 +32,7 @@ export default async function handler(req, res) {
     });
 
     const data = await openaiResponse.json();
+    console.log("OpenAI raw response:", JSON.stringify(data, null, 2));
     const reply = data?.choices?.[0]?.message?.content || "Sorry, I couldn't understand that.";
 
     res.setHeader("Content-Type", "text/xml");
