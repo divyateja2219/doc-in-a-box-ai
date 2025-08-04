@@ -3,16 +3,13 @@ export default async function handler(req, res) {
     return res.status(405).send("Only POST requests are allowed");
   }
 
+  const { Body } = req.body;
+
+  if (!Body) {
+    return res.status(400).send("Missing 'Body' in request");
+  }
+
   try {
-    // Parse incoming Twilio webhook format
-    const bodyData = req.body?.Body || req.body?.body || req.body;
-    const userMessage = typeof bodyData === "string" ? bodyData : "";
-
-    if (!userMessage || userMessage.trim().length === 0) {
-      return res.status(400).send("Missing or empty 'Body' in request");
-    }
-
-    // Call OpenAI API
     const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -25,11 +22,11 @@ export default async function handler(req, res) {
           {
             role: "system",
             content:
-              "You are a friendly virtual doctor. Respond to symptoms in a helpful, clear, and non-alarming way. If symptoms seem serious, politely recommend seeing a real doctor.",
+              "You are a helpful and cautious AI doctor assistant. Respond in friendly language. Suggest basic advice based on symptoms, but always recommend consulting a real doctor if the issue may be serious.",
           },
           {
             role: "user",
-            content: userMessage,
+            content: Body,
           },
         ],
         temperature: 0.7,
@@ -38,10 +35,12 @@ export default async function handler(req, res) {
 
     const data = await openaiResponse.json();
 
-    // Check if OpenAI returned a valid message
-    const reply =
-      data?.choices?.[0]?.message?.content?.trim() ||
-      "Sorry, I couldn't understand that.";
+    if (!data?.choices?.[0]?.message?.content) {
+      console.error("OpenAI error:", data);
+      throw new Error("Invalid OpenAI response");
+    }
+
+    const reply = data.choices[0].message.content.trim();
 
     res.setHeader("Content-Type", "text/xml");
     res.status(200).send(`
@@ -50,12 +49,11 @@ export default async function handler(req, res) {
       </Response>
     `);
   } catch (error) {
-    console.error("API Error:", error.message || error);
-
+    console.error("API handler error:", error);
     res.setHeader("Content-Type", "text/xml");
     res.status(200).send(`
       <Response>
-        <Message>Sorry, something went wrong on our side. Please try again later.</Message>
+        <Message>Sorry, something went wrong on our side.</Message>
       </Response>
     `);
   }
