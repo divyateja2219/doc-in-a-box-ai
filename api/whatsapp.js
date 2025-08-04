@@ -8,6 +8,7 @@ export default async function handler(req, res) {
   if (!Body) {
     return res.status(400).send("Missing 'Body' in request");
   }
+
   try {
     const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -20,21 +21,24 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content:
-              "You are a friendly virtual doctor. Respond in a helpful, clear, and conversational way. Provide basic suggestions based on user symptoms. If the situation sounds serious, politely recommend seeing a real doctor.",
+            content: "You are a friendly virtual doctor. Respond to symptoms in a helpful, clear, and non-alarming way. If symptoms seem serious, politely recommend seeing a real doctor.",
           },
           {
             role: "user",
             content: Body,
           },
         ],
+        temperature: 0.7,
       }),
     });
 
     const data = await openaiResponse.json();
-    console.log("OpenAI raw response:", JSON.stringify(data, null, 2));
 
-    const reply = data?.choices?.[0]?.message?.content || "Sorry, I couldn't understand that.";
+    const reply = data?.choices?.[0]?.message?.content?.trim();
+
+    if (!reply) {
+      throw new Error("No response from OpenAI");
+    }
 
     res.setHeader("Content-Type", "text/xml");
     res.status(200).send(`
@@ -43,11 +47,11 @@ export default async function handler(req, res) {
       </Response>
     `);
   } catch (error) {
-    console.error("API error:", error);
+    console.error("OpenAI error:", error.message);
     res.setHeader("Content-Type", "text/xml");
     res.status(200).send(`
       <Response>
-        <Message>Sorry, something went wrong.</Message>
+        <Message>Sorry, something went wrong on our side.</Message>
       </Response>
     `);
   }
