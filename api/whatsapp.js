@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
     const data = await openaiResponse.json();
     console.log("OpenAI raw response:", JSON.stringify(data, null, 2));
-    const reply = data?.choices?.[0]?.message?.content || "Sorry, I couldn't understand that.";
+    content: "You are a friendly virtual doctor. Respond in a helpful, clear, and conversational way. Provide basic suggestions based on user symptoms. If the situation sounds serious, politely recommend seeing a real doctor.",
 
     res.setHeader("Content-Type", "text/xml");
     res.status(200).send(`
