@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -22,33 +22,42 @@ export default async function handler(req, res) {
           {
             role: "system",
             content:
-              "You are a friendly AI doctor. Help users with general health advice based on symptoms. Be simple, polite, and suggest seeing a doctor if needed.",
+              "You are a friendly and helpful virtual doctor. Respond in clear, simple language. If symptoms are mild, offer home remedies. If symptoms seem serious, politely suggest the user see a real doctor. Do not scare the user.",
           },
           {
             role: "user",
             content: Body,
           },
         ],
+        temperature: 0.6,
       }),
     });
 
-    const data = await response.json();
+    const data = await openaiResponse.json();
+    console.log("🩺 OpenAI Response:", JSON.stringify(data, null, 2));
 
-    if (!data?.choices?.[0]?.message?.content) {
-      console.error("🛑 OpenAI API response invalid:", JSON.stringify(data, null, 2));
-      throw new Error("Invalid OpenAI response structure");
+    const reply = data?.choices?.[0]?.message?.content?.trim();
+
+    if (!reply) {
+      console.error("⚠️ Missing reply from OpenAI:", data);
+      return res.status(500).send(`
+        <Response>
+          <Message>Sorry, I couldn’t process that. Please try again later.</Message>
+        </Response>
+      `);
     }
 
-    const reply = data.choices[0].message.content.trim();
+    // XML-encode to avoid issues with characters
+    const safeReply = reply.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
     res.setHeader("Content-Type", "text/xml");
     res.status(200).send(`
       <Response>
-        <Message>${reply}</Message>
+        <Message>${safeReply}</Message>
       </Response>
     `);
   } catch (error) {
-    console.error("💥 Error in /api/whatsapp:", error);
+    console.error("💥 Server Error:", error);
     res.setHeader("Content-Type", "text/xml");
     res.status(200).send(`
       <Response>
