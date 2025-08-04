@@ -8,7 +8,6 @@ export default async function handler(req, res) {
   if (!Body) {
     return res.status(400).send("Missing 'Body' in request");
   }
-
   try {
     const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
