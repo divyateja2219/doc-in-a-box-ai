@@ -21,7 +21,8 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: "You are a friendly and cautious virtual doctor...",
+            content:
+              "You are a friendly virtual doctor. Respond in a helpful, clear, and conversational way. Provide basic suggestions based on user symptoms. If the situation sounds serious, politely recommend seeing a real doctor.",
           },
           {
             role: "user",
@@ -33,7 +34,8 @@ export default async function handler(req, res) {
 
     const data = await openaiResponse.json();
     console.log("OpenAI raw response:", JSON.stringify(data, null, 2));
-    content: "You are a friendly virtual doctor. Respond in a helpful, clear, and conversational way. Provide basic suggestions based on user symptoms. If the situation sounds serious, politely recommend seeing a real doctor.",
+
+    const reply = data?.choices?.[0]?.message?.content || "Sorry, I couldn't understand that.";
 
     res.setHeader("Content-Type", "text/xml");
     res.status(200).send(`
@@ -42,6 +44,7 @@ export default async function handler(req, res) {
       </Response>
     `);
   } catch (error) {
+    console.error("API error:", error);
     res.setHeader("Content-Type", "text/xml");
     res.status(200).send(`
       <Response>
