@@ -1,9 +1,26 @@
+import { parse } from 'querystring';
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).send("Only POST requests are allowed");
   }
 
-  const { Body } = req.body;
+  let bodyData;
+
+  // ✅ Properly parse Twilio's x-www-form-urlencoded body
+  if (req.headers["content-type"] === "application/x-www-form-urlencoded") {
+    const buffers = [];
+    for await (const chunk of req) {
+      buffers.push(chunk);
+    }
+    const rawBody = Buffer.concat(buffers).toString();
+    bodyData = parse(rawBody);
+  } else {
+    bodyData = req.body;
+  }
+
+  const { Body } = bodyData;
+  console.log("📩 Received Body:", Body);
 
   if (!Body) {
     return res.status(400).send("Missing 'Body' in request");
@@ -34,24 +51,28 @@ export default async function handler(req, res) {
     });
 
     const data = await openaiResponse.json();
-    console.log("🩺 OpenAI Response:", JSON.stringify(data, null, 2));
+    console.log("🧠 OpenAI full response:", JSON.stringify(data, null, 2));
 
     const reply = data?.choices?.[0]?.message?.content?.trim();
 
     if (!reply) {
       console.error("⚠️ Missing reply from OpenAI:", data);
-      return res.status(500).send(`
+      res.setHeader("Content-Type", "text/xml");
+      return res.status(200).send(`
         <Response>
-          <Message>Sorry, I couldn’t process that. Please try again later.</Message>
+          <Message>Sorry, I couldn’t understand that. Please try again later.</Message>
         </Response>
       `);
     }
 
-    // XML-encode to avoid issues with characters
-    const safeReply = reply.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    // 🛡️ Escape XML characters
+    const safeReply = reply
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
 
     res.setHeader("Content-Type", "text/xml");
-    res.status(200).send(`
+    return res.status(200).send(`
       <Response>
         <Message>${safeReply}</Message>
       </Response>
@@ -59,7 +80,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error("💥 Server Error:", error);
     res.setHeader("Content-Type", "text/xml");
-    res.status(200).send(`
+    return res.status(200).send(`
       <Response>
         <Message>Sorry, something went wrong on our side.</Message>
       </Response>
