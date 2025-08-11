@@ -1,27 +1,42 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import HealthAdvice from "./HealthAdvice"; // ✅ Import your HealthAdvice page
-const queryClient = new QueryClient();
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import HealthAdvice from "./pages/HealthAdvice";
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter basename="/doc-in-a-box-ai"> {/* ✅ Required for GitHub Pages */}
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/health-advice" element={<HealthAdvice />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <Router basename={process.env.PUBLIC_URL}>
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+        {/* Navbar stays across all pages */}
+        <Navbar />
+
+        {/* Page Content */}
+        <div className="p-4">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+
+            {/* Health Advice standalone route */}
+            <Route path="/health-advice" element={<HealthAdvice />} />
+
+            {/* 404 Fallback */}
+            <Route
+              path="*"
+              element={
+                <div className="text-center text-xl mt-20">
+                  🚫 Page Not Found
+                </div>
+              }
+            />
+          </Routes>
+        </div>
+      </div>
+    </Router>
+  );
+}
 
 export default App;
