@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sparkles } from "lucide-react";
-
 const tipsByCategory: Record<string, string[]> = {
   Nutrition: [
     "Add more leafy greens to your diet — they boost your immune system and improve digestion.",
