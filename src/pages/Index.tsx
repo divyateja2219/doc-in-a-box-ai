@@ -6,7 +6,6 @@ import MedicineTracker from "@/components/MedicineTracker";
 import KnowledgeBase from "@/components/KnowledgeBase";
 import SymptomChecker from "@/components/SymptomChecker";
 import HealthAdvice from "@/components/HealthAdvice";
-
 const Index = () => {
   const [tips, setTips] = useState<string[]>([]);
 
