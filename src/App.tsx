@@ -1,44 +1,26 @@
-import { useState } from "react";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
 
-function App() {
-  const [tips, setTips] = useState([]);
+const queryClient = new QueryClient();
 
-  const getTips = async () => {
-    try {
-      const res = await fetch("/api/healthTips");
-      if (!res.ok) {
-        throw new Error("Failed to fetch tips");
-      }
-      const data = await res.json();
-      setTips(data.tips || []);
-    } catch (error) {
-      console.error(error);
-      setTips(["Error fetching health tips."]);
-    }
-  };
-
-  return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      <h1>Health Tips</h1>
-      <button
-        onClick={getTips}
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#28a745",
-          color: "white",
-          border: "none",
-          cursor: "pointer",
-        }}
-      >
-        Get Tips
-      </button>
-      <ul>
-        {tips.map((tip, index) => (
-          <li key={index}>{tip}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
