@@ -6,6 +6,7 @@ import MedicineTracker from "@/components/MedicineTracker";
 import KnowledgeBase from "@/components/KnowledgeBase";
 import SymptomChecker from "@/components/SymptomChecker";
 import HealthAdvice from "@/components/HealthAdvice";
+
 const Index = () => {
   const [tips, setTips] = useState<string[]>([]);
 
@@ -26,12 +27,13 @@ const Index = () => {
         <h1 className="text-3xl font-bold mb-6">Doc-in-a-Box AI</h1>
 
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-card shadow-soft rounded-lg overflow-hidden">
-            <TabsTrigger value="dashboard" className="data-[state=active]:bg-gradient-medical data-[state=active]:text-white">Dashboard</TabsTrigger>
-            <TabsTrigger value="conversations" className="data-[state=active]:bg-gradient-medical data-[state=active]:text-white">Conversations</TabsTrigger>
-            <TabsTrigger value="symptom" className="data-[state=active]:bg-gradient-medical data-[state=active]:text-white">Symptom Checker</TabsTrigger>
-            <TabsTrigger value="medicine" className="data-[state=active]:bg-gradient-medical data-[state=active]:text-white">Medicine Tracker</TabsTrigger>
-            <TabsTrigger value="advice" className="data-[state=active]:bg-gradient-medical data-[state=active]:text-white">Health Advice</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-6 bg-card shadow-soft rounded-lg overflow-hidden">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="conversations">Conversations</TabsTrigger>
+            <TabsTrigger value="symptom">Symptom Checker</TabsTrigger>
+            <TabsTrigger value="medicine">Medicine Tracker</TabsTrigger>
+            <TabsTrigger value="advice">Health Advice</TabsTrigger>
+            <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard"><Dashboard /></TabsContent>
@@ -39,7 +41,6 @@ const Index = () => {
           <TabsContent value="symptom"><SymptomChecker /></TabsContent>
           <TabsContent value="medicine"><MedicineTracker /></TabsContent>
 
-          {/* Health Advice tab with Health Tips integrated */}
           <TabsContent value="advice">
             <HealthAdvice />
             <div className="mt-6 p-4 bg-white rounded-lg shadow">
@@ -58,7 +59,6 @@ const Index = () => {
             </div>
           </TabsContent>
 
-          {/* Keep KnowledgeBase separate */}
           <TabsContent value="knowledge"><KnowledgeBase /></TabsContent>
         </Tabs>
       </div>
