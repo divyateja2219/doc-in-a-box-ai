@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-
 export default function SymptomChecker() {
   const [symptoms, setSymptoms] = useState("");
   const [result, setResult] = useState("");
