@@ -7,8 +7,7 @@ import { Clock, Pill, Bell, Plus } from "lucide-react";
 
 const MedicineTracker = () => {
   const [selectedPatient, setSelectedPatient] = useState("");
-
-  const medicineSchedules = [
+  const [medicineSchedules, setMedicineSchedules] = useState([
     {
       id: "med_001",
       patientId: "Patient #4782",
@@ -21,18 +20,18 @@ const MedicineTracker = () => {
     },
     {
       id: "med_002",
-      patientId: "Patient #4781", 
+      patientId: "Patient #4781",
       medicine: "Amoxicillin",
       dosage: "250mg",
       frequency: "3 times daily",
       nextDue: "6:00 PM",
-      status: "on_time", 
+      status: "on_time",
       adherence: 92
     },
     {
       id: "med_003",
       patientId: "Patient #4780",
-      medicine: "Omeprazole", 
+      medicine: "Omeprazole",
       dosage: "20mg",
       frequency: "Once daily",
       nextDue: "Tomorrow 8:00 AM",
@@ -43,13 +42,23 @@ const MedicineTracker = () => {
       id: "med_004",
       patientId: "Patient #4779",
       medicine: "Vitamin D3",
-      dosage: "1000 IU", 
+      dosage: "1000 IU",
       frequency: "Once daily",
       nextDue: "8:00 AM",
       status: "completed",
       adherence: 98
     }
-  ];
+  ]);
+
+  const [newMed, setNewMed] = useState({
+    patientId: "",
+    medicine: "",
+    dosage: "",
+    frequency: "",
+    nextDue: "",
+    status: "on_time",
+    adherence: 100
+  });
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -61,9 +70,22 @@ const MedicineTracker = () => {
     }
   };
 
-  const filteredSchedules = selectedPatient 
+  const filteredSchedules = selectedPatient
     ? medicineSchedules.filter(schedule => schedule.patientId === selectedPatient)
     : medicineSchedules;
+
+  const addSchedule = () => {
+    if (!newMed.patientId || !newMed.medicine) {
+      alert("Please enter required fields");
+      return;
+    }
+    setMedicineSchedules(prev => [...prev, { ...newMed, id: `med_${Date.now()}` }]);
+    setNewMed({ patientId: "", medicine: "", dosage: "", frequency: "", nextDue: "", status: "on_time", adherence: 100 });
+  };
+
+  const sendReminders = () => {
+    alert("Reminders sent to all patients with due/soon medications!");
+  };
 
   return (
     <div className="space-y-6">
@@ -78,6 +100,7 @@ const MedicineTracker = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Filters + Buttons */}
           <div className="flex items-center gap-4 mb-6 flex-wrap">
             <Select value={selectedPatient} onValueChange={setSelectedPatient}>
               <SelectTrigger className="w-60">
@@ -90,17 +113,57 @@ const MedicineTracker = () => {
                 ))}
               </SelectContent>
             </Select>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={addSchedule}>
               <Plus className="h-4 w-4 mr-1" />
               Add Schedule
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={sendReminders}>
               <Bell className="h-4 w-4 mr-1" />
               Send Reminders
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Add New Medicine Form */}
+          <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+            <input
+              type="text"
+              placeholder="Patient ID"
+              value={newMed.patientId}
+              onChange={(e) => setNewMed({ ...newMed, patientId: e.target.value })}
+              className="border p-2 rounded w-full"
+            />
+            <input
+              type="text"
+              placeholder="Medicine Name"
+              value={newMed.medicine}
+              onChange={(e) => setNewMed({ ...newMed, medicine: e.target.value })}
+              className="border p-2 rounded w-full"
+            />
+            <input
+              type="text"
+              placeholder="Dosage"
+              value={newMed.dosage}
+              onChange={(e) => setNewMed({ ...newMed, dosage: e.target.value })}
+              className="border p-2 rounded w-full"
+            />
+            <input
+              type="text"
+              placeholder="Frequency"
+              value={newMed.frequency}
+              onChange={(e) => setNewMed({ ...newMed, frequency: e.target.value })}
+              className="border p-2 rounded w-full"
+            />
+            <input
+              type="text"
+              placeholder="Next Due"
+              value={newMed.nextDue}
+              onChange={(e) => setNewMed({ ...newMed, nextDue: e.target.value })}
+              className="border p-2 rounded w-full"
+            />
+          </div>
+
+          {/* Medicine Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
             {filteredSchedules.map((schedule) => (
               <Card key={schedule.id} className="border border-border hover:shadow transition">
                 <CardContent className="p-4 space-y-2">
