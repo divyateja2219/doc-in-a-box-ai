@@ -5,7 +5,6 @@ const MODEL = "gpt-4o-mini"; // good, fast, inexpensive
 
 // ---- Helpers ----
 function parseForm(req) {
-  // Twilio sends application/x-www-form-urlencoded
   return new Promise((resolve) => {
     let body = "";
     req.on("data", (chunk) => (body += chunk));
@@ -16,7 +15,6 @@ function parseForm(req) {
   });
 }
 
-// Escape XML for TwiML
 function xmlEscape(str = "") {
   return str
     .replaceAll("&", "&amp;")
@@ -26,9 +24,7 @@ function xmlEscape(str = "") {
     .replaceAll("'", "&apos;");
 }
 
-// Build a WhatsApp-friendly reply
 function renderReply(payload, userText) {
-  // payload is structured JSON from the LLM
   const {
     severity = "minor",
     summary = "",
@@ -54,7 +50,6 @@ next_steps?.length ? `\n*Next steps:*\n${bullets(next_steps)}\n` : ""
 red_flags?.length ? `*Watch for these red flags:*\n${bullets(red_flags)}\n` : ""
 }${citations?.length ? `_Sources:_ ${citations.join(", ")}\n` : ""}_${disclaimer}_`;
 
-  // Keep under Twilio 1600 chars if possible
   return txt.slice(0, 1500);
 }
 
@@ -104,17 +99,19 @@ If the text is not a health question, politely say you only give general health 
 
   if (!resp.ok) {
     const t = await resp.text();
+    console.error("OpenAI API HTTP Error:", resp.status, t);
     throw new Error(`OpenAI error: ${resp.status} ${t}`);
   }
 
   const data = await resp.json();
-  // Model returns JSON in message content
+  console.log("OpenAI API Raw Response:", JSON.stringify(data, null, 2));
+
   const text = data.choices?.[0]?.message?.content || "{}";
 
-  // Try parse JSON; if fails, fallback to safe default
   try {
     return JSON.parse(text);
-  } catch {
+  } catch (err) {
+    console.error("JSON Parse Error:", err, "LLM Output:", text);
     return {
       severity: "moderate",
       summary: "I had trouble parsing your message. Please restate the main symptoms, when they started, and any key history (age, conditions, meds).",
@@ -130,7 +127,6 @@ If the text is not a health question, politely say you only give general health 
 // ---- Vercel handler ----
 export default async function handler(req, res) {
   if (req.method === "GET") {
-    // Simple health check
     res.status(200).json({ ok: true });
     return;
   }
@@ -140,10 +136,8 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Parse Twilio x-www-form-urlencoded webhook
   const form = await parseForm(req);
   const userText = (form.Body || "").toString().trim();
-  // You can also read form.From, form.ProfileName, etc., if needed
 
   if (!userText) {
     const msg = "Hi! I can help with general health guidance. Tell me your main symptom, when it started, your age, and any long-term conditions or medicines.";
@@ -160,6 +154,7 @@ export default async function handler(req, res) {
     res.setHeader("Content-Type", "text/xml");
     res.status(200).send(xml);
   } catch (err) {
+    console.error("Handler Error:", err);
     const fallback = "Sorry—I couldn’t process that right now. If this is urgent, please seek medical care immediately.";
     const xml = `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${xmlEscape(fallback)}</Message></Response>`;
     res.setHeader("Content-Type", "text/xml");
