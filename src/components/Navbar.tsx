@@ -1,15 +1,43 @@
-import React from 'react';
-const Navbar: React.FC = () => {
+import { NavLink } from "react-router-dom";
+
+export default function Navbar() {
   return (
-    <nav className="bg-blue-600 text-white p-4 shadow-md">
-      <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-lg font-bold">Doc-in-a-Box AI</h1>
-        <ul className="flex gap-4">
-          <li><a href="/" className="hover:underline">Home</a></li>
-          <li><a href="/about" className="hover:underline">About</a></li>
-        </ul>
+    <nav className="bg-blue-600 p-4 text-white flex justify-between">
+      <div className="font-bold">Doc-in-a-Box AI</div>
+      <div className="space-x-4">
+        <NavLink
+          to="/"
+          className={({ isActive }) =>
+            isActive ? "underline font-bold" : "hover:underline"
+          }
+        >
+          Home
+        </NavLink>
+        <NavLink
+          to="/about"
+          className={({ isActive }) =>
+            isActive ? "underline font-bold" : "hover:underline"
+          }
+        >
+          About
+        </NavLink>
+        <NavLink
+          to="/contact"
+          className={({ isActive }) =>
+            isActive ? "underline font-bold" : "hover:underline"
+          }
+        >
+          Contact
+        </NavLink>
+        <NavLink
+          to="/health-advice"
+          className={({ isActive }) =>
+            isActive ? "underline font-bold" : "hover:underline"
+          }
+        >
+          Health Advice
+        </NavLink>
       </div>
     </nav>
   );
-};
-export default Navbar;
+}

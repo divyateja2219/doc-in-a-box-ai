@@ -27,6 +27,10 @@ function App() {
               element={
                 <div className="text-center text-xl mt-20">
                   🚫 Page Not Found
+                  <br />
+                  <a href="#/" className="text-blue-400 underline">
+                    Go back home
+                  </a>
                 </div>
               }
             />
