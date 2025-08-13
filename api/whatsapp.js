@@ -1,108 +1,168 @@
-import { parse } from "querystring";
+// Serverless WhatsApp webhook for Vercel + Twilio + OpenAI (ESM style)
 
+const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+const MODEL = "gpt-4o-mini"; // good, fast, inexpensive
+
+// ---- Helpers ----
+function parseForm(req) {
+  // Twilio sends application/x-www-form-urlencoded
+  return new Promise((resolve) => {
+    let body = "";
+    req.on("data", (chunk) => (body += chunk));
+    req.on("end", () => {
+      const data = Object.fromEntries(new URLSearchParams(body));
+      resolve(data);
+    });
+  });
+}
+
+// Escape XML for TwiML
+function xmlEscape(str = "") {
+  return str
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;");
+}
+
+// Build a WhatsApp-friendly reply
+function renderReply(payload, userText) {
+  // payload is structured JSON from the LLM
+  const {
+    severity = "minor",
+    summary = "",
+    next_steps = [],
+    self_care = [],
+    red_flags = [],
+    citations = [],
+    disclaimer = "This is general information, not a medical diagnosis. Seek medical care if you’re worried.",
+  } = payload || {};
+
+  const sevEmoji =
+    severity === "emergency" ? "⛔"
+    : severity === "moderate" ? "⚠️"
+    : "ℹ️";
+
+  const bullets = (arr = []) => arr.map((x) => `• ${x}`).join("\n");
+
+  let txt =
+`${sevEmoji} *Assessment:* ${severity.toUpperCase()}
+${summary ? `\n${summary}\n` : ""}${
+next_steps?.length ? `\n*Next steps:*\n${bullets(next_steps)}\n` : ""
+}${self_care?.length ? `*Self-care:*\n${bullets(self_care)}\n` : ""}${
+red_flags?.length ? `*Watch for these red flags:*\n${bullets(red_flags)}\n` : ""
+}${citations?.length ? `_Sources:_ ${citations.join(", ")}\n` : ""}_${disclaimer}_`;
+
+  // Keep under Twilio 1600 chars if possible
+  return txt.slice(0, 1500);
+}
+
+// ---- OpenAI call ----
+async function askOpenAI(userText) {
+  const system = `
+You are a careful, supportive health assistant for seniors on WhatsApp.
+ALWAYS be conservative with risk. Never give a definitive diagnosis.
+Return a STRICT JSON object only (no prose) with keys:
+{
+ "severity": "minor|moderate|emergency",
+ "summary": "1-2 line plain-language impression",
+ "next_steps": ["clear, safe actions (time-bound)"],
+ "self_care": ["simple home care tips if appropriate"],
+ "red_flags": ["specific warning signs to seek urgent care"],
+ "citations": ["short trusted sources e.g., WHO, CDC"],
+ "disclaimer": "concise disclaimer"
+}
+Rules:
+- If age >=60 or has chronic disease terms (diabetes, BP, heart, kidney, COPD, cancer, pregnancy), bias to higher caution.
+- If symptoms suggest time-sensitive danger (chest pain, stroke signs, severe breathing trouble, heavy bleeding), set severity="emergency" and advise immediate medical attention.
+- Keep sentences simple and friendly. Use neutral, non-alarming tone.
+  `;
+
+  const user = `
+User message (free text):
+${userText}
+
+If the text is not a health question, politely say you only give general health info and encourage contacting a clinician for concerns.
+`;
+
+  const resp = await fetch(OPENAI_URL, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      messages: [
+        { role: "system", content: system.trim() },
+        { role: "user", content: user.trim() }
+      ],
+      temperature: 0.2,
+    }),
+  });
+
+  if (!resp.ok) {
+    const t = await resp.text();
+    throw new Error(`OpenAI error: ${resp.status} ${t}`);
+  }
+
+  const data = await resp.json();
+  // Model returns JSON in message content
+  const text = data.choices?.[0]?.message?.content || "{}";
+
+  // Try parse JSON; if fails, fallback to safe default
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {
+      severity: "moderate",
+      summary: "I had trouble parsing your message. Please restate the main symptoms, when they started, and any key history (age, conditions, meds).",
+      next_steps: ["If symptoms are severe or worsening, seek in-person care promptly."],
+      self_care: ["Stay hydrated and rest."],
+      red_flags: ["Severe chest pain", "Severe shortness of breath", "Confusion", "Fainting"],
+      citations: ["WHO", "CDC"],
+      disclaimer: "This is general information, not a diagnosis.",
+    };
+  }
+}
+
+// ---- Vercel handler ----
 export default async function handler(req, res) {
+  if (req.method === "GET") {
+    // Simple health check
+    res.status(200).json({ ok: true });
+    return;
+  }
+
   if (req.method !== "POST") {
-    return res.status(405).send("Only POST requests are allowed");
+    res.status(405).send("Method Not Allowed");
+    return;
+  }
+
+  // Parse Twilio x-www-form-urlencoded webhook
+  const form = await parseForm(req);
+  const userText = (form.Body || "").toString().trim();
+  // You can also read form.From, form.ProfileName, etc., if needed
+
+  if (!userText) {
+    const msg = "Hi! I can help with general health guidance. Tell me your main symptom, when it started, your age, and any long-term conditions or medicines.";
+    const xml = `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${xmlEscape(msg)}</Message></Response>`;
+    res.setHeader("Content-Type", "text/xml");
+    res.status(200).send(xml);
+    return;
   }
 
   try {
-    let bodyData = {};
-
-    // ✅ Properly handle x-www-form-urlencoded content (from Twilio)
-    if (req.headers["content-type"] === "application/x-www-form-urlencoded") {
-      const buffers = [];
-      for await (const chunk of req) {
-        buffers.push(chunk);
-      }
-      const rawBody = Buffer.concat(buffers).toString();
-      bodyData = parse(rawBody);
-    } else {
-      bodyData = req.body;
-    }
-
-    const { Body } = bodyData;
-    console.log("📩 Incoming user message:", Body);
-
-    if (!Body || typeof Body !== "string") {
-      return res.status(400).send("Missing or invalid 'Body' in request");
-    }
-
-    // 🔐 Check for missing API key
-    if (!process.env.OPENAI_API_KEY) {
-      console.error("❌ Missing OPENAI_API_KEY in environment variables");
-      res.setHeader("Content-Type", "text/xml");
-      return res
-        .status(500)
-        .send(`<Response><Message>Server config error</Message></Response>`);
-    }
-
-    // 🧠 OpenAI API Call
-    const openaiResponse = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are a friendly and helpful virtual doctor. Respond in clear, simple language. If symptoms are mild, offer home remedies. If symptoms seem serious, politely suggest the user see a real doctor. Do not scare the user.",
-            },
-            {
-              role: "user",
-              content: Body,
-            },
-          ],
-          temperature: 0.6,
-        }),
-      }
-    );
-
-    const data = await openaiResponse.json();
-    console.log("🧠 OpenAI full response:", JSON.stringify(data, null, 2));
-
-    if (data.error) {
-      console.error("❌ OpenAI error:", data.error);
-      res.setHeader("Content-Type", "text/xml");
-      return res
-        .status(200)
-        .send(
-          `<Response><Message>AI error: ${data.error.message}</Message></Response>`
-        );
-    }
-
-    const reply = data?.choices?.[0]?.message?.content?.trim();
-
-    if (!reply) {
-      console.error("⚠️ No valid reply from OpenAI");
-      res.setHeader("Content-Type", "text/xml");
-      return res
-        .status(200)
-        .send(
-          `<Response><Message>Sorry, I couldn’t understand that. Please try again later.</Message></Response>`
-        );
-    }
-
-    // 🛡️ Escape XML-sensitive characters
-    const safeReply = reply
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-
+    const ai = await askOpenAI(userText);
+    const reply = renderReply(ai, userText);
+    const xml = `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${xmlEscape(reply)}</Message></Response>`;
     res.setHeader("Content-Type", "text/xml");
-    return res.status(200).send(`<Response><Message>${safeReply}</Message></Response>`);
-  } catch (error) {
-    console.error("💥 Server Error:", error);
+    res.status(200).send(xml);
+  } catch (err) {
+    const fallback = "Sorry—I couldn’t process that right now. If this is urgent, please seek medical care immediately.";
+    const xml = `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${xmlEscape(fallback)}</Message></Response>`;
     res.setHeader("Content-Type", "text/xml");
-    return res
-      .status(200)
-      .send(
-        `<Response><Message>Sorry, something went wrong on our side.</Message></Response>`
-      );
+    res.status(200).send(xml);
   }
 }
